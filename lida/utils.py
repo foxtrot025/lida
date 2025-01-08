@@ -12,6 +12,8 @@ import tiktoken
 from diskcache import Cache
 import hashlib
 import io
+import chardet
+import requests
 
 logger = logging.getLogger("lida")
 
@@ -40,6 +42,47 @@ def clean_column_names(df: pd.DataFrame) -> pd.DataFrame:
     cleaned_df = df.copy()
     cleaned_df.columns = [clean_column_name(col) for col in cleaned_df.columns]
     return cleaned_df
+
+
+def detect_encoding(file_path):
+    """
+    Detects the encoding of a file using the chardet library.
+
+    Args:
+      file_path: Path to the file.
+
+    Returns:
+      Detected encoding of the file.
+    """
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        with open(file_path, 'rb') as f:
+          rawdata = f.read()
+    else:
+        try:
+            response = requests.get(file_path)
+            if response.status_code == 200:
+                temp_file = os.getcwd() + "\downloaded_file"
+                with open(temp_file, "wb") as f:
+                    f.write(response.content)
+                logger.info(
+                    "File downloaded successfully!")
+            else:
+                raise ValueError(f"Error downloading file: {response.status_code}")
+        except Exception as e:
+            logger.error(f"Failed to dowload file: {file_path}. Error: {e}")
+            raise
+
+        with open(temp_file, 'rb') as f:
+            rawdata = f.read()
+        # Delete temp file after use
+        if os.path.exists(temp_file):
+            os.remove(temp_file)
+            logger.info(f"File '{temp_file}' deleted successfully.")
+        else:
+            logger.error(f"File '{temp_file}' does not exist.")
+            raise
+    encoding = chardet.detect(rawdata)['encoding']
+    return encoding
 
 
 def read_dataframe(file_location: str, encoding: str = 'utf-8') -> pd.DataFrame:

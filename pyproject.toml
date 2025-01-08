@@ -27,6 +27,7 @@ dependencies = [
      "scipy", 
     "numpy",
     "pandas",
+    "chardet",
     "matplotlib",
     "altair", 
     "seaborn",

@@ -12,7 +12,7 @@ import logging
 import pandas as pd
 from llmx import llm, TextGenerator
 from lida.datamodel import Goal, Summary, TextGenerationConfig, Persona
-from lida.utils import read_dataframe
+from lida.utils import read_dataframe, detect_encoding
 from ..components.summarizer import Summarizer
 from ..components.goal import GoalExplorer
 from ..components.persona import PersonaExplorer
@@ -125,7 +125,7 @@ class Manager(object):
 
         if isinstance(data, str):
             file_name = data.split("/")[-1]
-            data = read_dataframe(data)
+            data = read_dataframe(data, encoding=detect_encoding(data))
 
         self.data = data
         return self.summarizer.summarize(
